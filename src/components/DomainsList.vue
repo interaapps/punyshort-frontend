@@ -15,6 +15,10 @@
         </a>
 
         <button ref="loadMoreBtn" class="btn load-more" v-if="domains.length < pagination?.pagination?.total" @click="load(page + 1)">Load more</button>
+
+        <p v-if="domains.length === 0" class="no-entries-found">
+            no entries found
+        </p>
     </div>
 </template>
 

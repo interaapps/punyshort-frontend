@@ -1,24 +1,14 @@
-# frontend
+# Punyshort Frontend
+[Read more on Punyshort on the Punyshort Main project](https://github.com/interaapps/punyshort)
 
-## Project setup
-```
-npm install
-```
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
+```bash
+docker run -p 80:80 \
+  -e PUNYSHORT_FRONTEND_API='https://api.punyshort.ga' \
+  -e PUNYSHORT_FRONTEND_CLIENT_ID='uk73m9t0odzewt2' \
+  interaapps/punyshort-frontend
 ```
 
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## Environment Variables
+- PUNYSHORT_FRONTEND_API
+- PUNYSHORT_FRONTEND_CLIENT_ID

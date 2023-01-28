@@ -17,6 +17,10 @@
         </router-link>
 
         <button ref="loadMoreBtn" class="btn load-more" v-if="links.length < pagination?.pagination?.total" @click="load(page + 1)">Load more</button>
+
+        <p v-if="links.length === 0" class="no-entries-found">
+            no entries found
+        </p>
     </div>
 </template>
 

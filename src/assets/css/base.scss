@@ -104,6 +104,11 @@ input, select {
   }
 }
 
+.no-entries-found {
+  opacity: 0.5;
+  text-align: center;
+  margin: 70px 0;
+}
 
 .site-width {
   width: 100%;

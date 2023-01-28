@@ -52,7 +52,7 @@ export default {
     }),
     computed: {
         totalPages() {
-            return Math.floor(this.pagination.total || 0 / 10) + 1
+            return Math.floor((this.pagination.total || 0) / 10) + 1
         }
     },
     mounted() {

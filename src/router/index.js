@@ -25,6 +25,11 @@ const routes = [
     component: () => import('../views/FrontendRedirection.vue')
   },
   {
+    path: '/error-page',
+    name: 'error-page',
+    component: () => import('../views/ErrorPage.vue')
+  },
+  {
     path: '/*',
     name: '404',
     component: () => import('../views/NotFound.vue')
