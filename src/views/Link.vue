@@ -267,7 +267,7 @@ export default {
             this.countryPercentages = percentages
         },
         getISOName(iso) {
-            return iso166names[iso.replace('UK', 'GB')] || iso
+            return iso166names[iso.replace('GB', 'UK')] || iso
         },
         async deleteLink() {
             await apiClient.delete(`/v1/shorten-links/${this.$route.params.id}`)

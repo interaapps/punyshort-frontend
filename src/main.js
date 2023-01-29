@@ -29,10 +29,10 @@ export async function login(){
         .addScope("user:read")
         .openInNewWindow("/logging_in.html")
 
-    const callback = await (await apiClient.get("/v1/auth/oauth2/interaapps/callback", {
+    const callback = await apiClient.get("/v1/auth/oauth2/interaapps/callback", {
         code: res.code,
         popup: "true"
-    })).json()
+    })
 
     localStorage["session"] = callback.session
     apiClient.bearer(callback.session)

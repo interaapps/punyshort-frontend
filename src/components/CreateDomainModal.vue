@@ -75,7 +75,6 @@ export default {
             console.log(domain)
             if (domain.dns_type === 'CNAME') {
                 result.cname_domain = (await apiClient.get("/v1/app/default-cname")).value
-                result.cname_domain = (await apiClient.get("/v1/app/default-cname")).value
             } else if (domain.dns_type === 'CUSTOM_PROXY') {
                 result.api_key = (await apiClient.post("/v1/access-tokens", {
                     type: 'REDIRECT_PROXY_INSTANCE'
