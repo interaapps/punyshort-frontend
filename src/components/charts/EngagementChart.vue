@@ -38,13 +38,12 @@ export default {
     },
     methods: {
         async load() {
-            const res = (await apiClient.get(`/v1/shorten-links/${this.linkId}/stats/dates`, {
+            const {data: res} = (await apiClient.get(`/v1/shorten-links/${this.linkId}/stats/dates`, {
                 order_by: 'date',
                 order_desc: false,
                 limit: 7
-            }).then(r=>r.json())).data
+            }))
 
-            console.log(res)
             this.option.xAxis.data = []
             this.option.series[0].data = []
 
@@ -86,12 +85,12 @@ export default {
                 },
                 series: [
                     {
-                        data: [120, 200, 150, 80, 70, 110, 130],
+                        data: [],
                         type: 'bar',
 
                         itemStyle: {
                             normal: {
-                                barBorderRadius: [10, 10, 0 ,0 ]
+                                barBorderRadius: [10, 10, 0 , 0]
                             }
                         }
                     }

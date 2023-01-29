@@ -3,6 +3,8 @@ import {Cajax} from "cajaxjs";
 export default class PunyshortAPI extends Cajax {
     constructor(baseUrl) {
         super(baseUrl || 'punyshort.apis.intera.dev')
+
+        this.promiseInterceptor = this.json
     }
 
     async json(q) {
@@ -23,26 +25,42 @@ export default class PunyshortAPI extends Cajax {
     }
 
     getUser() {
-        return this.json(this.get("/v1/user"))
+        return this.get("/v1/user")
     }
 
     shorten(data) {
-        return this.json(this.post("/v1/shorten-links", data))
+        return this.post("/v1/shorten-links", data)
+    }
+
+    update(id, data) {
+        return this.put(`/v1/shorten-links/${id}`, data)
     }
 
     getShortenLink(id) {
-        return this.json(this.get(`/v1/shorten-links/${id}`))
+        return this.get(`/v1/shorten-links/${id}`)
     }
 
     getShortenLinks(query = {}) {
-        return this.json(this.get("/v1/shorten-links", query))
+        return this.get("/v1/shorten-links", query)
     }
 
     getShortenLinksStats(id, category, query = {}) {
-        return this.json(this.get(`/v1/shorten-links/${id}/stats/${category}`, query))
+        return this.get(`/v1/shorten-links/${id}/stats/${category}`, query)
+    }
+
+    createDomain(data) {
+        return this.post("/v1/domains", data)
     }
 
     getDomains(query = {}) {
-        return this.json(this.get("/v1/domains", query))
+        return this.get("/v1/domains", query)
+    }
+
+    getDomain(id, query = {}) {
+        return this.get(`/v1/domains/${id}`, query)
+    }
+
+    deleteDomain(id, query = {}) {
+        return this.delete(`/v1/domains/${id}`, query)
     }
 }

@@ -41,7 +41,7 @@ export default {
     },
     methods: {
         async load() {
-            const res = (await apiClient.get(`/v1/shorten-links/${this.linkId}/stats/operating-systems`).then(r=>r.json())).data
+            const {data: res} = await apiClient.get(`/v1/shorten-links/${this.linkId}/stats/operating-systems`)
 
             this.option.radar.indicator = res.map(r => ({name: r.operating_system}))
             this.option.series = [

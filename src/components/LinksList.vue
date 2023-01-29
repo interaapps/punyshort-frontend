@@ -3,7 +3,7 @@
         <input v-model="search" type="text" class="search" placeholder="Search" @input="load(true)">
         <router-link v-for="link of links" :key="link.id" class="links-list-item" :to="{name: 'link', params: {id: link.id}}">
             <div class="links-list-name">
-                <h1>{{ link.domain }}/{{ link.path }}</h1>
+                <h1>{{ link.domain.name }}/{{ link.path }}</h1>
                 <h2>{{ link.long_link }}</h2>
             </div>
             <div class="links-list-country-flag">

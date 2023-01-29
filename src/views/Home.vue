@@ -16,12 +16,19 @@
                 </template>
                 <template v-slot:[`tab-domains`]>
                     <DomainsList ref="domainsList" class="mt-4" />
+                    <button class="btn" @click="$refs.addDomainModal.open()">Add Domain</button>
                 </template>
             </Tabs>
         </div>
 
 
         <span class="floating-info-text"><a href="https://interaapps.de">InteraApps</a> - <a href="https://interaapps.de/privacy">privacy</a>&nbsp;&nbsp;<a href="https://interaapps.de/imprint">imprint</a></span>
+
+        <CreateDomainModal
+            ref="addDomainModal"
+            @created="$refs.domainsList.load(true)"
+            @dnsCheckDone="$refs.domainsList.load(true)"
+        />
     </div>
 </template>
 
@@ -30,14 +37,18 @@ import ShortenURL from "@/components/ShortenURL.vue";
 import LinksList from "@/components/LinksList.vue";
 import Tabs from "@/components/Tabs.vue";
 import DomainsList from "@/components/DomainsList.vue";
+import CreateDomainModal from "@/components/CreateDomainModal.vue";
 
 export default {
     name: 'HomeView',
     components: {
+        CreateDomainModal,
         DomainsList,
         Tabs,
         LinksList,
         ShortenURL
+    },
+    mounted() {
     },
     methods: {
         createdShortenLink() {

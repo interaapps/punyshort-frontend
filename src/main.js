@@ -4,12 +4,14 @@ import './registerServiceWorker'
 import router from './router'
 import store from './store'
 import './assets/css/base.scss'
+import PortalVue from 'portal-vue'
 
 import VAnimateCss from 'v-animate-css';
 import IAOauth from "@/IAOauth";
 import PunyshortAPI from "@/PunyshortAPI";
 
-Vue.use(VAnimateCss);
+Vue.use(VAnimateCss)
+Vue.use(PortalVue)
 
 Vue.config.productionTip = false
 
@@ -20,12 +22,6 @@ export async function loadUser() {
     if (user.logged_in) {
         store.state.user = user
     }
-}
-
-
-if (localStorage["session"]) {
-    apiClient.bearer(localStorage["session"])
-    loadUser()
 }
 
 export async function login(){
@@ -43,9 +39,17 @@ export async function login(){
     await loadUser()
 }
 
+(async () => {
+    if (localStorage["session"]) {
+        apiClient.bearer(localStorage["session"])
+        await loadUser()
+    }
 
-new Vue({
-  router,
-  store,
-  render: h => h(App)
-}).$mount('#app')
+    console.log("Loaded user")
+
+    new Vue({
+        router,
+        store,
+        render: h => h(App)
+    }).$mount('#app')
+})()

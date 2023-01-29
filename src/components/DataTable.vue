@@ -65,11 +65,11 @@ export default {
     },
     methods: {
         async load() {
-            this.request = await (await apiClient.get(this.url, {
+            this.request = await apiClient.get(this.url, {
                 search: this.search,
                 page: this.page,
                 page_limit: this.limit
-            })).json()
+            })
             this.pagination = this.request.pagination
 
             this.data = this.request.data

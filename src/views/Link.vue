@@ -1,20 +1,25 @@
 <template>
-    <div id="link">
+    <div id="link" v-if="link">
         <div id="link-top">
             <div class="site-width" id="link-top-inner">
                 <div id="link-top-name">
                     <div id="link-top-shorten-preview">
-                        <h1>{{ link.domain }}/{{ link.path }}</h1>
+                        <h1>{{ link.domain.name }}/{{ link.path }}</h1>
                         <i @click="copyStringToClipboard(link.full_link)" class="ti ti-copy scale-active" />
                     </div>
                     <div id="link-top-name-preview">
                         <a :href="link.long_link" target="_blank" class="scale-active">{{ link.long_link }}</a>
-                        <i class="ti ti-pencil scale-active" />
+                        <!-- <i @click="openEdit()" class="ti ti-pencil scale-active" /> -->
                     </div>
                 </div>
                 <div />
                 <div id="link-top-actions">
-                    <i @click="deleteLink()" class="ti ti-trash icon-button" />
+                    <i @click="openEdit()" class="ti ti-pencil icon-button mr-1" />
+
+                    <ConfirmationModal ref="deleteConfirmation" title="Delete Link?" @confirm="deleteLink()">
+                        Do you really want to delete the link '{{ link.domain.name }}/{{ link.path }}'
+                    </ConfirmationModal>
+                    <i @click="$refs.deleteConfirmation.open()" class="ti ti-trash icon-button" />
                 </div>
             </div>
         </div>
@@ -157,6 +162,23 @@
                 </template>
             </Tabs>
         </div>
+
+        <Modal ref="editLinkModal" title="Edit" width="520px" @submit="edit()">
+            <label class="mb-1">SHORTEN LINK</label>
+            <div>
+                <select v-model="editLink.domain" style="width: 30%" class="inline-block input" type="text">
+                    <option v-for="domain of domains" :key="domain.id" :value="domain.id">{{ domain.name }}</option>
+                </select>
+
+                <div style="line-height: 37px; text-align: center; font-size: 18px; display: inline-block; width: 5%">/</div>
+                <input v-model="editLink.path" style="width: 65%" class="inline-block input" type="text">
+            </div>
+
+            <label class="mt-5">LONG LINK</label>
+            <input v-model="editLink.long_link" autofocus type="text" class="input mt-1">
+
+            <button type="submit" class="btn mt-4 right">Save</button>
+        </Modal>
     </div>
 </template>
 
@@ -172,10 +194,14 @@ import OperatingSystemsChart from "@/components/charts/OperatingSystemsChart.vue
 import BrowserChart from "@/components/charts/BrowserChart.vue";
 import EngagementChart from "@/components/charts/EngagementChart.vue";
 import Tabs from "@/components/Tabs.vue";
+import Modal from "@/components/Modal.vue";
+import ConfirmationModal from "@/components/ConfirmationModal.vue";
 
 export default {
     name: "Stats",
     components: {
+        ConfirmationModal,
+        Modal,
         EngagementChart,
         BrowserChart, OperatingSystemsChart, OperatingSystemIcon, BrowserIcon, DataTable, ZoomableMap, Tabs
     },
@@ -188,6 +214,13 @@ export default {
         clicksToday: 0,
         clicksThisWeek: 0,
 
+        domains: [],
+
+        editLink: {
+            long_link: '',
+            domain: '',
+            path: ''
+        }
     }),
     mounted() {
         this.load()
@@ -196,26 +229,34 @@ export default {
         copyStringToClipboard,
         async load() {
             this.loaded = false
+
+            await this.loadLink()
+            await this.loadStats()
+
+            this.loaded = true
+
+            this.domains = (await apiClient.get('/v1/domains', {order_by: 'created_at', order_desc: false})).data
+        },
+        async loadLink() {
             this.link = await apiClient.getShortenLink(this.$route.params.id)
+        },
+        async loadStats() {
+            this.totalClicks = await apiClient.get(`/v1/shorten-links/${this.$route.params.id}/stats/total`)
 
-            this.totalClicks = (await apiClient.get(`/v1/shorten-links/${this.$route.params.id}/stats/total`).then(r => r.json()))
-
-            const clicksPerDate = (await apiClient.get(`/v1/shorten-links/${this.$route.params.id}/stats/dates`, {
+            const {data: clicksPerDate} = await apiClient.get(`/v1/shorten-links/${this.$route.params.id}/stats/dates`, {
                 limit: 7,
                 order_by: 'date',
                 order_desc: true
-            }).then(r => r.json())).data
+            })
             this.clicksToday = clicksPerDate[0]?.count || 0
             this.clicksThisWeek = clicksPerDate.reduce((a, b) => a+b.count, 0)
 
             this.loadCountryPercentages()
-
-            this.loaded = true
         },
         async loadCountryPercentages() {
-            const data = (await (await apiClient.get(`/v1/shorten-links/${this.link.id}/stats/countries`, {
+            const {data} = await apiClient.get(`/v1/shorten-links/${this.link.id}/stats/countries`, {
                 page_limit: 0
-            })).json()).data
+            })
 
             const total = data.reduce((b, t) => b+t.count, 0)
             const percentages = {}
@@ -238,6 +279,20 @@ export default {
             const hostname = `https://icons.duckduckgo.com/ip3/${a.hostname}.ico`;
             a.remove()
             return hostname
+        },
+        openEdit() {
+            this.editLink = {
+                long_link: this.link.long_link,
+                domain: this.link.domain.id,
+                path: this.link.path
+            }
+
+            this.$refs.editLinkModal.open()
+        },
+        async edit() {
+            await apiClient.update(this.link.id, this.editLink)
+            await this.loadLink()
+            this.$refs.editLinkModal.close()
         }
     }
 }
@@ -289,6 +344,7 @@ export default {
             }
 
             #link-top-name-preview {
+                white-space: pre;
                 a, i {
                     color: #656565;
                     display: inline-block;
@@ -317,7 +373,7 @@ export default {
                 }
 
                 i {
-                    font-size: 18px;
+                    font-size: 21px;
                     padding: 3px;
                     cursor: pointer;
 

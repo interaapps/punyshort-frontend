@@ -41,7 +41,7 @@ export default {
     },
     methods: {
         async load() {
-            const res = (await apiClient.get(`/v1/shorten-links/${this.linkId}/stats/browsers`).then(r=>r.json())).data
+            const {data: res} = await apiClient.get(`/v1/shorten-links/${this.linkId}/stats/browsers`)
 
             this.option.radar.indicator = res.map(r => ({name: r.browser}))
             this.option.series = [

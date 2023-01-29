@@ -1,7 +1,7 @@
 <template>
     <div class="domains-list">
         <input v-model="search" type="text" class="search" placeholder="Search" @input="load(true)">
-        <a v-for="domain of domains" :key="domain.id" class="domains-list-item" :to="{name: 'link', params: {id: domain.id}}">
+        <a v-for="(domain, i) of domains" :key="domain.id" class="domains-list-item" :to="{name: 'link', params: {id: domain.id}}">
             <div class="domains-list-status">
                 <div v-if="domain.is_active" class="status-active"><div /></div>
                 <div v-else class="status-not-active"><div /></div>
@@ -11,8 +11,10 @@
             </div>
             <div class="domains-list-actions">
                 <button v-if="!domain.is_active" @click="makeDomainCheck(domain.id)" class="btn  mr-1">Update Status</button>
-                <button class="btn">Edit</button>
-                <button class="btn btn-danger ml-1">Delete</button>
+                <ConfirmationModal ref="deleteConfirmationPrompts" title="Delete domain?" @confirm="deleteDomain(domain.id)">
+                    Do you really want to delete the domain '{{ domain.name }}'?
+                </ConfirmationModal>
+                <button v-if="!domain.locked" @click="$refs.deleteConfirmationPrompts[i].open()" class="btn btn-danger ml-1">Delete</button>
             </div>
         </a>
 
@@ -26,8 +28,10 @@
 
 <script>
 import {apiClient} from "@/main";
+import ConfirmationModal from "@/components/ConfirmationModal.vue";
 
 export default {
+    components: {ConfirmationModal},
     data: () => ({
         pagination: {},
         domains: [],
@@ -62,6 +66,7 @@ export default {
                 order_desc: 'true',
                 show_public: false,
                 search: this.search,
+                show_internals: true,
                 page
             })
             this.page = page
@@ -71,6 +76,10 @@ export default {
         },
         async makeDomainCheck(id) {
             await apiClient.post(`/v1/domains/${id}/dns-check`)
+            await this.load(true)
+        },
+        async deleteDomain(id) {
+            await apiClient.deleteDomain(id)
             await this.load(true)
         }
     }

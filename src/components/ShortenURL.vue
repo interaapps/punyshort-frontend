@@ -9,7 +9,7 @@
                 <div />
 
                 <select :style="{opacity: showSettings ? 0 : 1}" v-model="domain" class="shorten-url-domain-select">
-                    <option v-for="domain of domains" :key="domain.id" :value="domain.name">{{ domain.name }}</option>
+                    <option v-for="domain of domains" :key="domain.id" :value="domain.id">{{ domain.name }}</option>
                 </select>
 
                 <button type="button" class="shorten-url-settings-button scale-active" @click="showSettings = !showSettings" :class="{'settings-shown': showSettings}">
@@ -25,7 +25,7 @@
                 <h1>REDIRECTION URL</h1>
                 <div class="shorten-url-custom-link">
                     <select v-model="domain" class="shorten-url-domain-select">
-                        <option v-for="domain of domains" :key="domain.id" :value="domain.name">{{ domain.name }}</option>
+                        <option v-for="domain of domains" :key="domain.id" :value="domain.id">{{ domain.name }}</option>
                     </select>
 
                     <div class="shorten-url-slash-splitter">/</div>
@@ -67,8 +67,8 @@ export default {
         domains: []
     }),
     async mounted() {
-        this.domains = await apiClient.get('/v1/domains', {order_by: 'created_at', order_desc: false}).then(r => r.json()).then(r => r.data)
-        this.domain = this.domains[0]?.name
+        this.domains = (await apiClient.get('/v1/domains', {order_by: 'created_at', order_desc: false})).data
+        this.domain = this.domains[0]?.id
     },
     methods: {
         async shorten() {
