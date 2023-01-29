@@ -88,7 +88,9 @@ export default {
         margin: -10px;
         margin-bottom: 15px;
 
-        max-width: 100%;
+        width: 100%;
+        width: calc(100% + 20px);
+
         .links-list-name {
             white-space: pre;
             max-width: 100%;

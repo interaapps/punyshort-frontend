@@ -2,13 +2,15 @@
     <div class="domains-list">
         <input v-model="search" type="text" class="search" placeholder="Search" @input="load(true)">
         <a v-for="domain of domains" :key="domain.id" class="domains-list-item" :to="{name: 'link', params: {id: domain.id}}">
+            <div class="domains-list-status">
+                <div v-if="domain.is_active" class="status-active"><div /></div>
+                <div v-else class="status-not-active"><div /></div>
+            </div>
             <div class="domains-list-name">
                 <h1>{{ domain.name }}</h1>
             </div>
-            <div class="domains-list-status">
-
-            </div>
             <div class="domains-list-actions">
+                <button v-if="!domain.is_active" @click="makeDomainCheck(domain.id)" class="btn  mr-1">Update Status</button>
                 <button class="btn">Edit</button>
                 <button class="btn btn-danger ml-1">Delete</button>
             </div>
@@ -66,6 +68,10 @@ export default {
 
             this.domains = [...this.domains, ...this.pagination.data]
             this.loading = false
+        },
+        async makeDomainCheck(id) {
+            await apiClient.post(`/v1/domains/${id}/dns-check`)
+            await this.load(true)
         }
     }
 }
@@ -75,7 +81,7 @@ export default {
 .domains-list {
     .domains-list-item {
         display: grid;
-        grid-template-columns: auto 40px fit-content(320px);
+        grid-template-columns: 30px auto fit-content(420px);
         align-items: center;
         transition: 0.3s;
 
@@ -86,7 +92,9 @@ export default {
         margin: -10px;
         margin-bottom: 15px;
 
-        max-width: 100%;
+        width: 100%;
+        width: calc(100% + 20px);
+
         .domains-list-name {
             white-space: pre;
             max-width: 100%;
@@ -97,6 +105,35 @@ export default {
                 max-width: 50%;
                 font-size: 18px;
                 font-weight: 500;
+            }
+        }
+
+        .domains-list-status {
+            .status-active, .status-not-active {
+                display: inline-block;
+                background: #888;
+                padding: 4px;
+                border-radius: 10px;
+                vertical-align: middle;
+                div {
+                    display: block;
+                    width:  10px;
+                    height: 10px;
+                    border-radius: 10px;
+                    background: #AAA;
+                }
+            }
+            .status-active {
+                background: #32a88f66;
+                div {
+                    background: #32a88f;
+                }
+            }
+            .status-not-active {
+                background: #A8323266;
+                div {
+                    background: #A83232;
+                }
             }
         }
 

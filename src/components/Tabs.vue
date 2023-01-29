@@ -1,7 +1,7 @@
 <template>
     <div class="tabs">
         <div>
-            <button v-for="(name, tab) of tabs" :key="tab" class="btn mr-1" :class="{'btn-gray': selected !== tab}" @click="selected = tab">{{ name }}</button>
+            <button v-for="(name, tab) of tabs" :key="tab" class="btn mr-1 mb-1" :class="{'btn-gray': selected !== tab}" @click="selected = tab">{{ name }}</button>
         </div>
         <div>
             <template v-for="(name, tab) of tabs">

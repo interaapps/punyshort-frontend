@@ -138,7 +138,7 @@ export default {
     .datatable-navigation {
         padding: 0 7px;
         margin: auto;
-        margin-bottom: 3px;
+        padding-bottom: 5px;
         width: fit-content;
 
         i {

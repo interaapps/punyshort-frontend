@@ -153,6 +153,7 @@ export default {
 
         input, select {
             height: 55px;
+            width: 100%;
         }
 
         .shorten-url-input {
