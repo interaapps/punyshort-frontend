@@ -99,7 +99,7 @@
                                         MAC: 'Mac',
                                         LINUX: 'Linux',
                                         IOS: 'iOS',
-                                        WINDOWS: 'WINDOWS',
+                                        WINDOWS: 'Windows',
                                         OTHER: 'Other'})[entry.operating_system] }}</td>
                                     <td width="160px">{{ entry.count }}</td>
                                 </template>
@@ -127,7 +127,7 @@
                                     <td style="padding-left: 7px">{{ ({
                                         SAFARI: 'Safari',
                                         CHROME: 'Chrome',
-                                        FIREFOX: 'Safari',
+                                        FIREFOX: 'Firefox',
                                         KONQUEROR: 'Konqueror',
                                         NETSCAPE: 'Netscape',
                                         MSIE: 'Internet Explorer',
@@ -409,7 +409,12 @@ export default {
         border-radius: 20px;
         width: 26px;
         height: 26px;
-        border: #545454 solid 2px;
+        border: #00000033 solid 2px;
+
+
+        @media (prefers-color-scheme: dark) {
+            border-color: #545454;
+        }
     }
 }
 
@@ -454,5 +459,7 @@ export default {
 .datatable-icon {
     width: 30px;
     height: 30px;
+    font-size: 30px;
+    text-align: center;
 }
 </style>
