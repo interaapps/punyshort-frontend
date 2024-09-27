@@ -14,5 +14,4 @@ ENV PYTHONUNBUFFERED=1
 RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
 
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-CMD ["/bin/sh", "-c", "python3 create_config.py /usr/share/nginx/html/config.js ; nginx -g 'daemon off;'"]
+CMD ["/bin/sh", "-c", "python3 create_config.py /usr/share/nginx/html/config.js && nginx -g 'daemon off;'"]
