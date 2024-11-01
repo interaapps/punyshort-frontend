@@ -15,6 +15,7 @@ const logout = () => {
   useUserStore().setUser(null)
   router.push({ name: 'home' })
   userMenuShown.value = false
+  localStorage.removeItem("session")
 }
 </script>
 <template>
