@@ -98,7 +98,7 @@ const loadStats = async () => {
   const lastFewDates = [...Array(7)].map((_, index) => {
     const date = new Date(0)
     date.setTime(today.getTime() - (index * 24 * 60 * 60 * 1000))
-    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 00:00:00`
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} 00:00:00`
   }).map(date => ({date, count: 0, ...clicksPerDate.find(e => e.date === date)}))
 
   clicksToday.value = lastFewDates[0]?.count || 0
