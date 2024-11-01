@@ -1,3 +1,6 @@
+@import '../../../node_modules/primeflex/primeflex.css';
+@import './theme';
+
 @import url(https://fonts.intera.dev/_/plus+jakarta+sans);
 @import url(https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css);
 * {
@@ -185,6 +188,22 @@ label {
     background: #32a88f;
   }
 
+  &.btn-transparent {
+    background: transparent;
+
+    color: #323232;
+    @media (prefers-color-scheme: dark) {
+      color: #FFF;
+    }
+
+    &:hover {
+      background: #e7e7e7;
+
+      @media (prefers-color-scheme: dark) {
+        background: #212121;
+      }
+    }
+  }
   &.btn-gray {
     background: #e7e7e7;
     color: #323232;
@@ -195,4 +214,12 @@ label {
   }
 }
 
-@import './grid';
+.right {
+  float: right;
+}
+
+.border-bg {
+  border-color: #666;
+}
+
+// @import './grid';

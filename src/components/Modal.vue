@@ -1,9 +1,16 @@
+<script setup>
+const visible = defineModel('visible')
+
+
+defineProps(['title', 'width'])
+const emit = defineEmits(['submit'])
+</script>
 <template>
-    <portal to="modals">
-        <div @click="close" v-if="opened" class="modal-bg" v-animate-css="{classes: 'fadeIn', duration: 250}">
-            <form @submit.prevent="$emit('submit')">
+    <Teleport to="#modals">
+        <div @click="visible = false" v-if="visible" class="modal-bg" v-animate-css="{classes: 'fadeIn', duration: 250}">
+            <form @submit.prevent="emit('submit')">
                 <div @click.stop class="modal" :style="{width}">
-                    <i @click="close" class="ti ti-x icon-button modal-close-button" />
+                    <i @click="visible = false" class="ti ti-x icon-button modal-close-button" />
                     <h1 class="modal-title">{{ title }}</h1>
 
                     <div class="modal-body">
@@ -12,30 +19,8 @@
                 </div>
             </form>
         </div>
-    </portal>
+    </Teleport>
 </template>
-
-<script>
-export default {
-    name: "Modal",
-    data: () => ({
-        opened: false
-    }),
-    props: {
-        title: {type: String},
-        width: {type: String, default: '420px'}
-    },
-    methods: {
-        open() {
-            this.opened = true
-        },
-        close() {
-            this.opened = false
-        }
-    }
-}
-</script>
-
 <style lang="scss" scoped>
 .modal-bg {
     position: fixed;

@@ -1,4 +1,4 @@
 window.APP_CONFIG = {
-    api: 'http://localhost:1337',
+    api: 'https://api.punyshort.intera.dev',
     client_id: 'uk73m9t0odzewt2'
 }

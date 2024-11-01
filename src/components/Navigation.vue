@@ -1,8 +1,27 @@
+<script setup>
+import { login } from "@/main";
+import {storeToRefs} from "pinia";
+import {useUserStore} from "@/store/userStore";
+import {ref} from "vue";
+import {useRouter} from "vue-router";
+
+const { user } = storeToRefs(useUserStore())
+const router = useRouter()
+
+const userMenuShown = ref(false)
+
+
+const logout = () => {
+  useUserStore().setUser(null)
+  router.push({ name: 'home' })
+  userMenuShown.value = false
+}
+</script>
 <template>
     <div class="navigation" v-animate-css="{classes: 'fadeInDown', duration: 300}">
         <div class="navigation-contents site-width">
             <router-link id="logo" class="scale-active" :to="{name: 'home'}">
-                <i class="ti ti-arrow-narrow-left" :class="{hidden: $route.name === 'home'}" />
+                <i class="ti ti-arrow-narrow-left" :class="{'i-hidden': $route.name === 'home'}" />
                 <span>punyshort</span>
             </router-link>
             <div />
@@ -11,10 +30,30 @@
                     <span>admin</span>
                 </router-link> -->
 
-                <template v-if="$store.state.user">
-                    <a class="profile-picture">
-                        <img :src="$store.state.user.profile_picture">
+                <template v-if="user">
+                  <div class="relative">
+                    <a class="profile-picture cursor-pointer" @click="userMenuShown = !userMenuShown">
+                        <img :src="user.profile_picture">
                     </a>
+                    <template v-if="userMenuShown">
+                      <div
+                        class="absolute right-0 w-14rem mt-2 border-round-xl shadow-1 p-1 overflow-hidden px-0 surface-0 border-1 border-100"
+                        v-animate-css="{classes: 'fadeIn', duration: 500}"
+                      >
+                        <a href="https://accounts.interaapps.de" class="block m-0">
+                          <button class="btn btn-transparent w-full flex align-items-center gap-1">
+                            <i class="ti ti-user" />
+                            <span>My Account</span>
+                          </button>
+                        </a>
+
+                        <button @click="logout" class="btn btn-transparent w-full flex align-items-center gap-1">
+                          <i class="ti ti-logout" />
+                          <span>Sign out</span>
+                        </button>
+                      </div>
+                    </template>
+                  </div>
                 </template>
                 <template v-else>
                     <a @click.prevent="login" class="navigation-links-login scale-active" href="/">
@@ -26,19 +65,6 @@
         </div>
     </div>
 </template>
-
-<script>
-import { login } from "@/main";
-
-export default {
-    methods: {
-        login() {
-            login()
-        }
-    }
-}
-</script>
-
 <style lang="scss" scoped>
 .navigation {
     position: fixed;
@@ -71,7 +97,7 @@ export default {
             margin-right: 10px;
             padding-top: 3px;
 
-            &.hidden {
+            &.i-hidden {
                 font-size: 0;
                 margin-right: 0;
             }
@@ -93,9 +119,9 @@ export default {
     .navigation-contents {
         display: grid;
         grid-template-columns: fit-content(200px) auto fit-content(340px);
+        align-items: center;
 
         .navigation-links {
-            line-height: 60px;
             font-size: 16px;
             font-weight: 500;
 

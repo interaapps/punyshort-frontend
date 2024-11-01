@@ -1,3 +1,61 @@
+<script setup>
+import {apiClient} from "@/main";
+import {computed, onMounted, ref, watch} from "vue";
+
+const props = defineProps({
+  url: String ,
+  structure: Array,
+  colWidths: Array,
+  identifier: String,
+  limit: Number,
+})
+
+
+const search = ref('')
+const request = ref({})
+const data = ref([])
+const pagination = ref({})
+const page = ref(1)
+
+
+const totalPages = computed(() => Math.floor((pagination?.value?.total || 0) / 10) + 1)
+
+const emit = defineEmits(['loaded'])
+async function load() {
+  request.value = await apiClient.get(props.url, {
+    search: search.value,
+    page: page.value,
+    page_limit: props.limit
+  })
+  console.log({request})
+  pagination.value = request.value.pagination
+
+  data.value = request.value.data
+  emit("loaded", data.value)
+}
+function pagLeft() {
+  if (page.value > 1) {
+    page.value--
+    load()
+  }
+}
+function pagRight() {
+  if (totalPages.value > page.value) {
+    page.value++
+    load()
+  }
+}
+
+
+watch(() => props.url, () => {
+  load()
+})
+
+onMounted(() => {
+  load()
+})
+</script>
+
 <template>
     <div class="datatable">
         <table>
@@ -5,20 +63,20 @@
                 <tr>
                     <th v-for="(name, i) of structure"
                         :key="name"
-                        :colspan="colWidths.length >= i+1 ? colWidths[i] : false"
+                        :colspan="colWidths?.length >= i+1 ? colWidths?.[i] : false"
                     >
                         {{name}}
                     </th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="entry of data" :key="entry[identifier]">
+                <tr v-for="entry of data" :key="entry[identifier ?? 'id']">
                     <slot name="entry" :entry="entry" />
                 </tr>
             </tbody>
         </table>
 
-        <p v-if="data.length === 0" style="opacity: 0.4; margin: 20px 0; text-align: center">
+        <p v-if="data?.length === 0" style="opacity: 0.4; margin: 20px 0; text-align: center">
             no items
         </p>
 
@@ -31,67 +89,7 @@
     </div>
 </template>
 
-<script>
-import {apiClient} from "@/main";
-
-export default {
-    name: "DataTable",
-    props: {
-        url: { type: String },
-        structure: { type: Array },
-        colWidths: { type: Array, default: () => [] },
-        identifier: { type: String, default: "id" },
-        limit: { type: Number, default: 10 },
-    },
-    data: () => ({
-        search: '',
-        request: {},
-        data: [],
-        pagination: {},
-        page: 1
-    }),
-    computed: {
-        totalPages() {
-            return Math.floor((this.pagination.total || 0) / 10) + 1
-        }
-    },
-    mounted() {
-        this.load()
-    },
-    watch: {
-        url() {
-            this.load()
-        }
-    },
-    methods: {
-        async load() {
-            this.request = await apiClient.get(this.url, {
-                search: this.search,
-                page: this.page,
-                page_limit: this.limit
-            })
-            this.pagination = this.request.pagination
-
-            this.data = this.request.data
-            this.$emit("loaded", this.data)
-        },
-        pagLeft() {
-            if (this.page > 1) {
-                this.page--
-                this.load()
-            }
-        },
-        pagRight() {
-            if (this.totalPages > this.page) {
-                this.page++
-                this.load()
-            }
-        }
-    }
-}
-</script>
-
-<style lang="scss" scoped>
+<style lang="scss">
 .datatable {
     table {
         width: 100%;

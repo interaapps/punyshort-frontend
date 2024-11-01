@@ -1,3 +1,58 @@
+<script setup>
+import {onMounted, ref} from "vue";
+import {apiClient} from "@/main";
+import {copyStringToClipboard} from "@/helper";
+import {storeToRefs} from "pinia";
+import {useUserStore} from "@/store/userStore";
+const { user } = storeToRefs(useUserStore())
+
+const result = ref(null)
+const showSettings = ref(false)
+
+const longLink = ref('')
+const domain = ref('')
+const path = ref('')
+const copiedResult = ref(false)
+
+const domains = ref([])
+
+const emit = defineEmits(['created'])
+
+const shorten = async () => {
+  let customPath = path.value.trim() || null
+
+  if (customPath === '/') {
+    customPath = ""
+  }
+
+  const responseResult = await apiClient.shorten({
+    long_link: longLink.value,
+    path: customPath,
+    domain: domain.value
+  })
+  result.value = responseResult
+  copiedResult.value = false
+  emit('created', responseResult)
+
+  if (!responseResult.error) {
+    path.value = ""
+    longLink.value = ""
+    showSettings.value = false
+  }
+}
+
+const copyPreview = () => {
+  copyStringToClipboard(result.value.full_link)
+  copiedResult.value = true
+}
+
+
+onMounted(async () => {
+  domains.value = (await apiClient.get('/v1/domains', {order_by: 'created_at', order_desc: false})).data
+  domain.value = domains.value[0]?.id
+})
+</script>
+
 <template>
     <div class="shorten-url">
         <form @submit.prevent="shorten">
@@ -42,64 +97,12 @@
             <div v-else class="shorten-url-result-inner">
                 <a class="link-preview">{{ result.full_link }}</a>
                 <button class="btn" :class="{'btn-success': copiedResult}" @click="copyPreview()">Copy</button>
-                <router-link v-if="$store.state.user" :to="{name: 'link', params: {id: result.id}}" class="btn">Stats</router-link>
+                <router-link v-if="user" :to="{name: 'link', params: {id: result.id}}" class="btn">Stats</router-link>
             </div>
             <i @click="result = null" class="ti ti-x icon-button shorten-url-close" />
         </div>
     </div>
 </template>
-
-<script>
-import {apiClient} from "@/main";
-import {copyStringToClipboard} from "@/helper";
-
-export default {
-    name: "ShortenURL",
-    data: () => ({
-        result: null,
-        showSettings: false,
-
-        longLink: '',
-        domain: '',
-        path: '',
-        copiedResult: false,
-
-        domains: []
-    }),
-    async mounted() {
-        this.domains = (await apiClient.get('/v1/domains', {order_by: 'created_at', order_desc: false})).data
-        this.domain = this.domains[0]?.id
-    },
-    methods: {
-        async shorten() {
-            let path = this.path.trim() || null
-
-            if (path === '/') {
-                path = ""
-            }
-
-            const result = await apiClient.shorten({
-                long_link: this.longLink,
-                path: path,
-                domain: this.domain
-            })
-            this.result = result
-            this.copiedResult = false
-            this.$emit('created', result)
-
-            if (!result.error) {
-                this.path = ""
-                this.longLink = ""
-                this.showSettings = false
-            }
-        },
-        copyPreview() {
-            copyStringToClipboard(this.result.full_link)
-            this.copiedResult = true
-        }
-    }
-}
-</script>
 
 <style lang="scss" scoped>
 .shorten-url {

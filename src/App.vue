@@ -2,7 +2,6 @@
     <div id="app">
         <navigation />
         <router-view />
-        <portal-target name="modals" />
     </div>
 </template>
 <script setup>

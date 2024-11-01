@@ -1,7 +1,16 @@
+<script setup>
+import {ref} from "vue";
+
+const props = defineProps({
+  tabs: Object
+})
+
+const selected = ref(Object.keys(props.tabs)[0])
+</script>
 <template>
     <div class="tabs">
         <div>
-            <button v-for="(name, tab) of tabs" :key="tab" class="btn mr-1 mb-1" :class="{'btn-gray': selected !== tab}" @click="selected = tab">{{ name }}</button>
+            <button v-for="(name, tab) of tabs" :key="tab" class="btn mr-2 mb-1" :class="{'btn-gray': selected !== tab}" @click="selected = tab">{{ name }}</button>
         </div>
         <div>
             <template v-for="(name, tab) of tabs">
@@ -12,20 +21,6 @@
         </div>
     </div>
 </template>
-
-<script>
-export default {
-    name: "Tabs",
-    props: {
-        tabs: {type: Object}
-    },
-    data() {
-        return {
-            selected: Object.keys(this.tabs)[0]
-        }
-    }
-}
-</script>
 
 <style lang="scss" scoped>
 .tabs {

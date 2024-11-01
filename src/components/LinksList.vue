@@ -1,22 +1,90 @@
+<script setup>
+import {apiClient} from "@/main";
+import {getFavicon} from "@/helper/helper";
+import {copyStringToClipboard} from "@/helper";
+import {onMounted, ref} from "vue";
+import QRCodeModal from "@/components/QRCodeModal.vue";
+
+const pagination = ref({})
+const links = ref([])
+const page = ref(1)
+const loading = ref(false)
+const search = ref("")
+
+const qrCodeModalOpened = ref({})
+
+const load = async (fresh = false, currentPage = 1) => {
+  if (fresh)
+    links.value = []
+
+  loading.value = true
+  pagination.value = await apiClient.getShortenLinks({
+    show_compact_stats: true,
+    order_by: 'created_at',
+    order_desc: 'true',
+    search: search.value,
+    page: currentPage
+  })
+  page.value = currentPage
+
+  links.value = [...links.value, ...pagination.value.data]
+  loading.value = false
+}
+
+const observeEl = el => {
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting === true) {
+      if (!loading.value) {
+        load(false, page.value + 1)
+      }
+    }
+  }, {threshold: [0]});
+
+  if (el) {
+    observer.observe(el);
+  }
+}
+
+defineExpose({load})
+
+onMounted(() => {
+  load(true, 1)
+})
+</script>
+
 <template>
     <div class="links-list">
         <input v-model="search" type="text" class="search" placeholder="Search" @input="load(true)">
         <router-link v-for="link of links" :key="link.id" class="links-list-item" :to="{name: 'link', params: {id: link.id}}">
             <div class="links-list-name">
-                <h1>{{ link.domain.name }}/{{ link.path }}</h1>
-                <h2>{{ link.long_link }}</h2>
+                <div class="flex gap-3 align-items-center w-full">
+                  <div style="width: 30px; height: 30px" class="border-round-2xl flex-none border-1 border-200 overflow-hidden p-1">
+                    <img class="datatable-icon w-full h-full block" :src="getFavicon(link.long_link)" alt="Favicon of url" />
+                  </div>
+
+                  <div class="w-full">
+                    <div class="mb-1 flex align-items-center gap-2 w-full">
+                      <h1>{{ link.domain.name }}/{{ link.path }}</h1>
+                      <i @click.stop.prevent="copyStringToClipboard(link.full_link)" class="ti ti-copy scale-active opacity-0 show-on-hover" />
+                      <i @click.stop.prevent="qrCodeModalOpened[link.id] = true" class="ti ti-qrcode scale-active opacity-0 show-on-hover" />
+
+                      <QRCodeModal v-model:visible="qrCodeModalOpened[link.id]" :text="link.full_link" />
+                    </div>
+                    <h2>{{ link.long_link }}</h2>
+                  </div>
+                </div>
             </div>
-            <div class="links-list-country-flag">
+            <div class="links-list-country-flag opacity-0 transition-duration-300 show-on-hover">
                 <img v-if="!link.compact_stats?.most_visiting_country || link.compact_stats?.most_visiting_country === 'UNKN'" src="https://cdn.interaapps.de/icon/flags/misc/UNKNOWN.svg">
                 <img v-else :src="`https://cdn.interaapps.de/icon/flags/states/${link.compact_stats?.most_visiting_country}.svg`">
             </div>
             <div class="links-list-stats">
-                <span>{{ link.compact_stats?.total }}</span>
-                <i class="ti ti-timeline" />
+              <span>{{ link.compact_stats?.total }}</span>
+              <i class="ti ti-timeline" />
             </div>
         </router-link>
 
-        <button ref="loadMoreBtn" class="btn load-more" v-if="links.length < pagination?.pagination?.total" @click="load(page + 1)">Load more</button>
+        <button :ref="el => observeEl(el)" class="btn load-more" v-if="links.length < pagination?.pagination?.total" @click="load(page + 1)">Load more</button>
 
         <p v-if="links.length === 0" class="no-entries-found">
             no entries found
@@ -24,60 +92,11 @@
     </div>
 </template>
 
-<script>
-import {apiClient} from "@/main";
-
-export default {
-    name: "LinksList",
-    data: () => ({
-        pagination: {},
-        links: [],
-        page: 1,
-        loading: false,
-        search: ""
-    }),
-    mounted() {
-        this.load(true, 1)
-
-        setTimeout(() => {
-            const observer = new IntersectionObserver(entries => {
-                if (entries[0].isIntersecting === true) {
-                    if (!this.loading) {
-                        this.load(false, this.page + 1)
-                    }
-                }
-            }, {threshold: [0]});
-
-            observer.observe(this.$refs.loadMoreBtn);
-        }, 500)
-    },
-    methods: {
-        async load(fresh = false, page = 1) {
-            if (fresh)
-                this.links = []
-
-            this.loading = true
-            this.pagination = await apiClient.getShortenLinks({
-                show_compact_stats: true,
-                order_by: 'created_at',
-                order_desc: 'true',
-                search: this.search,
-                page
-            })
-            this.page = page
-
-            this.links = [...this.links, ...this.pagination.data]
-            this.loading = false
-        }
-    }
-}
-</script>
-
 <style lang="scss" scoped>
 .links-list {
     .links-list-item {
         display: grid;
-        grid-template-columns: auto 40px fit-content(120px);
+        grid-template-columns: auto 36px fit-content(120px);
         align-items: center;
         transition: 0.3s;
 
@@ -86,7 +105,7 @@ export default {
         border-radius: 10px;
         padding: 10px;
         margin: -10px;
-        margin-bottom: 15px;
+        margin-bottom: 14px;
 
         width: 100%;
         width: calc(100% + 20px);
@@ -101,12 +120,12 @@ export default {
             }
             h1 {
                 max-width: 50%;
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: 500;
             }
             h2 {
                 max-width: 40%;
-                font-size: 16px;
+                font-size: 14px;
                 font-weight: 400;
                 color: #AAA;
             }
@@ -114,8 +133,8 @@ export default {
         .links-list-country-flag {
             img {
                 display: block;
-                width: 28px;
-                height: 28px;
+                width: 26px;
+                height: 26px;
                 border-radius: 100px;
                 border: 2px solid #DDD;
             }
@@ -133,6 +152,7 @@ export default {
                 vertical-align: middle;
                 margin-right: 5px;
                 font-weight: 500;
+              font-size: 16px;
             }
         }
 
@@ -162,6 +182,12 @@ export default {
                 background: #FFFFFF11;
             }
         }
+
+      &:hover {
+        .show-on-hover {
+          opacity: 1 !important;
+        }
+      }
     }
 }
 

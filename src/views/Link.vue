@@ -1,3 +1,128 @@
+<script setup>
+import ZoomableMap from "@/components/ZoomableMap.vue";
+import {apiClient} from "@/main";
+import DataTable from "@/components/DataTable.vue";
+import BrowserIcon from "@/components/browsers/BrowserIcon.vue";
+import OperatingSystemIcon from "@/components/operating_systems/OperatingSystemIcon.vue";
+import iso166names from "@/assets/data/iso3166names";
+import {copyStringToClipboard} from "@/helper";
+import OperatingSystemsChart from "@/components/charts/OperatingSystemsChart.vue";
+import BrowserChart from "@/components/charts/BrowserChart.vue";
+import EngagementChart from "@/components/charts/EngagementChart.vue";
+import Tabs from "@/components/Tabs.vue";
+import Modal from "@/components/Modal.vue";
+import ConfirmationModal from "@/components/ConfirmationModal.vue";
+import {onMounted, ref, useTemplateRef} from "vue";
+import {useRoute, useRouter} from "vue-router";
+import {getFavicon} from "@/helper/helper";
+import QRCodeModal from "@/components/QRCodeModal.vue";
+
+const router = useRouter()
+
+const route = useRoute()
+
+const link = ref(null)
+const countryPercentages = ref({})
+const loaded = ref(false)
+
+const totalClicks = ref(0)
+const clicksToday = ref(0)
+const clicksThisWeek = ref(0)
+
+const domains = ref([])
+
+const editLink = ref({
+  long_link: '',
+  domain: '',
+  path: ''
+})
+
+
+const deleteConfirmationOpened = ref(false)
+const editLinkModalOpened = ref(false)
+const qrCodeOpened = ref(false)
+
+const loadLink = async () => {
+  link.value = await apiClient.getShortenLink(route.params.id)
+}
+
+const loadCountryPercentages = async () => {
+  const {data} = await apiClient.get(`/v1/shorten-links/${link.value.id}/stats/countries`, {
+    page_limit: 0
+  })
+
+  const total = data.reduce((b, t) => b+t.count, 0)
+  const percentages = {}
+  for (const country of data) {
+    percentages[country.country_code] = country.count/total
+  }
+
+  countryPercentages.value = percentages
+}
+
+const getISOName = (iso) => {
+  return iso166names[iso.replace('GB', 'UK')] || iso
+}
+
+const deleteLink = async () => {
+  await apiClient.delete(`/v1/shorten-links/${route.params.id}`)
+  await router.push({name: 'home'})
+}
+
+const openEdit = () => {
+  editLink.value = {
+    long_link: link.value.long_link,
+    domain: link.value.domain.id,
+    path: link.value.path
+  }
+
+  editLinkModalOpened.value = true
+}
+
+const edit = async () => {
+  await apiClient.update(link.value.id, editLink.value)
+  await loadLink()
+  editLinkModalOpened.value = false
+}
+
+const loadStats = async () => {
+  totalClicks.value = await apiClient.get(`/v1/shorten-links/${route.params.id}/stats/total`)
+
+  const {data: clicksPerDate} = await apiClient.get(`/v1/shorten-links/${route.params.id}/stats/dates`, {
+    limit: 7,
+    order_by: 'date',
+    order_desc: true
+  })
+
+  const today = new Date()
+  const lastFewDates = [...Array(7)].map((_, index) => {
+    const date = new Date(0)
+    date.setTime(today.getTime() - (index * 24 * 60 * 60 * 1000))
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 00:00:00`
+  }).map(date => ({date, count: 0, ...clicksPerDate.find(e => e.date === date)}))
+
+  clicksToday.value = lastFewDates[0]?.count || 0
+  clicksThisWeek.value = lastFewDates.reduce((a, b) => a+b.count, 0)
+
+  loadCountryPercentages()
+}
+
+const load = async () => {
+  loaded.value = false
+
+  await loadLink()
+  await loadStats()
+
+  loaded.value = true
+
+  domains.value = (await apiClient.get('/v1/domains', {order_by: 'created_at', order_desc: false})).data
+}
+
+onMounted(() => {
+  load()
+})
+</script>
+
 <template>
     <div id="link" v-if="link">
         <div id="link-top">
@@ -6,6 +131,9 @@
                     <div id="link-top-shorten-preview">
                         <h1>{{ link.domain.name }}/{{ link.path }}</h1>
                         <i @click="copyStringToClipboard(link.full_link)" class="ti ti-copy scale-active" />
+                        <i @click="qrCodeOpened = true" class="ti ti-qrcode scale-active" />
+
+                      <QRCodeModal v-model:visible="qrCodeOpened" :text="link.full_link" />
                     </div>
                     <div id="link-top-name-preview">
                         <a :href="link.long_link" target="_blank" class="scale-active">{{ link.long_link }}</a>
@@ -16,10 +144,10 @@
                 <div id="link-top-actions">
                     <i @click="openEdit()" class="ti ti-pencil icon-button mr-1" />
 
-                    <ConfirmationModal ref="deleteConfirmation" title="Delete Link?" @confirm="deleteLink()">
+                    <ConfirmationModal v-model:visible="deleteConfirmationOpened" title="Delete Link?" @confirm="deleteLink()">
                         Do you really want to delete the link '{{ link.domain.name }}/{{ link.path }}'
                     </ConfirmationModal>
-                    <i @click="$refs.deleteConfirmation.open()" class="ti ti-trash icon-button" />
+                    <i @click="deleteConfirmationOpened = true" class="ti ti-trash icon-button" />
                 </div>
             </div>
         </div>
@@ -27,16 +155,16 @@
         <div v-if="loaded" class="site-width mt-5"  v-animate-css="{classes: 'fadeIn', duration: 500}">
             <h1 class="mb-5">Stats</h1>
 
-            <div class="big-stats-cards">
-                <div class="big-stats-card col-4">
+            <div class="big-stats-cards grid">
+                <div class="big-stats-card col-12 md:col-4">
                     <h1>{{ totalClicks }}</h1>
                     <h2>total</h2>
                 </div>
-                <div class="big-stats-card col-4">
+                <div class="big-stats-card col-12 md:col-4">
                     <h1>{{ clicksThisWeek }}</h1>
                     <h2>this week</h2>
                 </div>
-                <div class="big-stats-card col-4">
+                <div class="big-stats-card col-12 md:col-4">
                     <h1>{{ clicksToday }}</h1>
                     <h2>today</h2>
                 </div>
@@ -44,10 +172,10 @@
 
             <h2>Country</h2>
 
-            <div>
-                <ZoomableMap class="col-8 p-3" :country-percentages="countryPercentages" />
+            <div class="grid">
+                <ZoomableMap class="col-12 md:col-8 p-3" :country-percentages="countryPercentages" />
 
-                <div class="col-4 countries-list">
+                <div class="col-12 md:col-4 countries-list">
                     <DataTable
                         class="datatable-darken-bg"
                         :url="`/v1/shorten-links/${link.id}/stats/countries`"
@@ -78,12 +206,12 @@
 
             <Tabs :tabs="{os: 'Operating Systems', browsers: 'Browsers', referrers: 'Referrers'}" style="min-height: 80vh">
                 <template v-slot:tab-os>
-                    <div class="pt-8 pb-5">
-                        <div class="col-7">
+                    <div class="pt-8 pb-5 grid">
+                        <div class="col-12 md:col-7">
                             <OperatingSystemsChart :link-id="link.id" />
 
                         </div>
-                        <div class="col-5">
+                        <div class="col-12 md:col-5">
                             <DataTable
                                 class="datatable-darken-bg"
                                 :url="`/v1/shorten-links/${link.id}/stats/operating-systems`"
@@ -109,11 +237,11 @@
                 </template>
 
                 <template v-slot:tab-browsers>
-                    <div class="pt-8 pb-5">
-                        <div class="col-7">
+                    <div class="pt-8 pb-5 grid">
+                        <div class="col-12 md:col-7">
                             <BrowserChart :link-id="link.id" />
                         </div>
-                        <div class="col-5">
+                        <div class="col-12 md:col-5">
                             <DataTable
                                 class="datatable-darken-bg"
                                 :url="`/v1/shorten-links/${link.id}/stats/browsers`"
@@ -163,7 +291,7 @@
             </Tabs>
         </div>
 
-        <Modal ref="editLinkModal" title="Edit" width="520px" @submit="edit()">
+        <Modal v-model:visible="editLinkModalOpened" title="Edit" width="520px" @submit="edit()">
             <label class="mb-1">SHORTEN LINK</label>
             <div>
                 <select v-model="editLink.domain" style="width: 30%" class="inline-block input" type="text">
@@ -181,122 +309,6 @@
         </Modal>
     </div>
 </template>
-
-<script>
-import ZoomableMap from "@/components/ZoomableMap.vue";
-import {apiClient} from "@/main";
-import DataTable from "@/components/DataTable.vue";
-import BrowserIcon from "@/components/browsers/BrowserIcon.vue";
-import OperatingSystemIcon from "@/components/operating_systems/OperatingSystemIcon.vue";
-import iso166names from "@/assets/data/iso3166names";
-import {copyStringToClipboard} from "@/helper";
-import OperatingSystemsChart from "@/components/charts/OperatingSystemsChart.vue";
-import BrowserChart from "@/components/charts/BrowserChart.vue";
-import EngagementChart from "@/components/charts/EngagementChart.vue";
-import Tabs from "@/components/Tabs.vue";
-import Modal from "@/components/Modal.vue";
-import ConfirmationModal from "@/components/ConfirmationModal.vue";
-
-export default {
-    name: "Stats",
-    components: {
-        ConfirmationModal,
-        Modal,
-        EngagementChart,
-        BrowserChart, OperatingSystemsChart, OperatingSystemIcon, BrowserIcon, DataTable, ZoomableMap, Tabs
-    },
-    data: () => ({
-        link: {},
-        countryPercentages: {},
-        loaded: false,
-
-        totalClicks: 0,
-        clicksToday: 0,
-        clicksThisWeek: 0,
-
-        domains: [],
-
-        editLink: {
-            long_link: '',
-            domain: '',
-            path: ''
-        }
-    }),
-    mounted() {
-        this.load()
-    },
-    methods: {
-        copyStringToClipboard,
-        async load() {
-            this.loaded = false
-
-            await this.loadLink()
-            await this.loadStats()
-
-            this.loaded = true
-
-            this.domains = (await apiClient.get('/v1/domains', {order_by: 'created_at', order_desc: false})).data
-        },
-        async loadLink() {
-            this.link = await apiClient.getShortenLink(this.$route.params.id)
-        },
-        async loadStats() {
-            this.totalClicks = await apiClient.get(`/v1/shorten-links/${this.$route.params.id}/stats/total`)
-
-            const {data: clicksPerDate} = await apiClient.get(`/v1/shorten-links/${this.$route.params.id}/stats/dates`, {
-                limit: 7,
-                order_by: 'date',
-                order_desc: true
-            })
-            this.clicksToday = clicksPerDate[0]?.count || 0
-            this.clicksThisWeek = clicksPerDate.reduce((a, b) => a+b.count, 0)
-
-            this.loadCountryPercentages()
-        },
-        async loadCountryPercentages() {
-            const {data} = await apiClient.get(`/v1/shorten-links/${this.link.id}/stats/countries`, {
-                page_limit: 0
-            })
-
-            const total = data.reduce((b, t) => b+t.count, 0)
-            const percentages = {}
-            for (const country of data) {
-                percentages[country.country_code] = country.count/total
-            }
-
-            this.countryPercentages = percentages
-        },
-        getISOName(iso) {
-            return iso166names[iso.replace('GB', 'UK')] || iso
-        },
-        async deleteLink() {
-            await apiClient.delete(`/v1/shorten-links/${this.$route.params.id}`)
-            this.$router.push({name: 'home'})
-        },
-        getFavicon(url) {
-            const a = document.createElement("a");
-            a.href = url;
-            const hostname = `https://icons.duckduckgo.com/ip3/${a.hostname}.ico`;
-            a.remove()
-            return hostname
-        },
-        openEdit() {
-            this.editLink = {
-                long_link: this.link.long_link,
-                domain: this.link.domain.id,
-                path: this.link.path
-            }
-
-            this.$refs.editLinkModal.open()
-        },
-        async edit() {
-            await apiClient.update(this.link.id, this.editLink)
-            await this.loadLink()
-            this.$refs.editLinkModal.close()
-        }
-    }
-}
-</script>
 
 <style lang="scss" scoped>
 #link {
