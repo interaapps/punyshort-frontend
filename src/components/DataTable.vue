@@ -25,7 +25,7 @@ async function load() {
   request.value = await apiClient.get(props.url, {
     search: search.value,
     page: page.value,
-    page_limit: props.limit
+    page_limit: props.limit ?? 0
   })
   console.log({request})
   pagination.value = request.value.pagination
