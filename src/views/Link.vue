@@ -275,6 +275,7 @@ onMounted(() => {
                         :url="`/v1/shorten-links/${link.id}/stats/referrers`"
                         :structure="['Referrer', 'Clicks']"
                         :col-widths="[2]"
+                        :limit="10"
                     >
                         <template v-slot:entry="{entry}">
                             <td style="width: 10px; padding-right: 6px">

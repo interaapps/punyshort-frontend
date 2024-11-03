@@ -18,7 +18,7 @@ const pagination = ref({})
 const page = ref(1)
 
 
-const totalPages = computed(() => Math.floor((pagination?.value?.total || 0) / 10) + 1)
+const totalPages = computed(() => Math.floor((pagination?.value?.total || 0) / props.limit) + 1)
 
 const emit = defineEmits(['loaded'])
 async function load() {
@@ -27,7 +27,7 @@ async function load() {
     page: page.value,
     page_limit: props.limit ?? 0
   })
-  console.log({request})
+
   pagination.value = request.value.pagination
 
   data.value = request.value.data
