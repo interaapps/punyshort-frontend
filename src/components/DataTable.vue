@@ -18,7 +18,7 @@ const pagination = ref({})
 const page = ref(1)
 
 
-const totalPages = computed(() => Math.floor((pagination?.value?.total || 0) / props.limit) + 1)
+const totalPages = computed(() => Math.floor((pagination?.value?.total || 0) / (props.limit ?? 10)) + 1)
 
 const emit = defineEmits(['loaded'])
 async function load() {
