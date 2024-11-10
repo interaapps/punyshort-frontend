@@ -61,7 +61,7 @@ const load = async () => {
   const { data: res } = (await apiClient.get(`/v1/shorten-links/${props.linkId}/stats/dates`, {
     order_by: 'date',
     order_desc: true,
-    limit: 14
+    page_limit: 14
   }))
 
   const today = new Date()
