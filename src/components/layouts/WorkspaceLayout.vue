@@ -31,7 +31,7 @@ const workspaces = ref([])
 
 const load = async () => {
   workspaces.value = (await apiClient.getWorkspaces({
-    limit: 10000
+    page_limit: 10000
   })).data
 
   workspace.value = workspaces.value.find(w => w.slug === route.params.workspace)

@@ -89,7 +89,7 @@ const loadStats = async () => {
   totalClicks.value = await apiClient.get(`/v1/shorten-links/${route.params.id}/stats/total`)
 
   const {data: clicksPerDate} = await apiClient.get(`/v1/shorten-links/${route.params.id}/stats/dates`, {
-    limit: 7,
+    page_limit: 7,
     order_by: 'date',
     order_desc: true
   })
