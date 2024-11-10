@@ -18,6 +18,8 @@ const domains = ref([])
 
 const emit = defineEmits(['created'])
 
+const props = defineProps(["workspace"])
+
 const shorten = async () => {
   let customPath = path.value.trim() || null
 
@@ -28,8 +30,10 @@ const shorten = async () => {
   const responseResult = await apiClient.shorten({
     long_link: longLink.value,
     path: customPath,
-    domain: domain.value
+    domain: domain.value,
+    workspace_id: props.workspace?.id || undefined
   })
+
   result.value = responseResult
   copiedResult.value = false
   emit('created', responseResult)
@@ -46,10 +50,19 @@ const copyPreview = () => {
   copiedResult.value = true
 }
 
+const loadDomains = async () => {
+  if (props.workspace) {
+    domains.value = (await apiClient.getWorkspaceDomains(props.workspace.id, {order_by: 'created_at', order_desc: false})).data
+  } else {
+    domains.value = (await apiClient.get('/v1/domains', {order_by: 'created_at', order_desc: false})).data
+  }
+  domain.value = domains.value[0]?.id
+}
+
+defineExpose({ loadDomains })
 
 onMounted(async () => {
-  domains.value = (await apiClient.get('/v1/domains', {order_by: 'created_at', order_desc: false})).data
-  domain.value = domains.value[0]?.id
+  loadDomains()
 })
 </script>
 
@@ -63,9 +76,14 @@ onMounted(async () => {
                 <div :style="{opacity: showSettings ? 0 : 1}" class="shorten-url-splitter" />
                 <div />
 
-                <select :style="{opacity: showSettings ? 0 : 1}" v-model="domain" class="shorten-url-domain-select">
+                <select v-if="domains.length" :style="{opacity: showSettings ? 0 : 1}" v-model="domain" class="shorten-url-domain-select">
                     <option v-for="domain of domains" :key="domain.id" :value="domain.id">{{ domain.name }}</option>
                 </select>
+                <div v-else class="flex w-full justify-content-between align-items-center">
+                  <p class="opacity-40 text-sm">
+                    {{ workspace ? 'select domains on the linked domains page.' : 'No domains available.' }}
+                  </p>
+                </div>
 
                 <button type="button" class="shorten-url-settings-button scale-active" @click="showSettings = !showSettings" :class="{'settings-shown': showSettings}">
                     <i class="ti ti-adjustments-horizontal" />

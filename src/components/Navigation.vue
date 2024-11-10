@@ -11,25 +11,35 @@ const router = useRouter()
 const userMenuShown = ref(false)
 
 
+defineProps(['homeRoute'])
+
 const logout = () => {
   useUserStore().setUser(null)
   router.push({ name: 'home' })
   userMenuShown.value = false
   localStorage.removeItem("session")
 }
+
+const goPageBack = (e) => {
+  if (window.history.length > 0) {
+    router.back();
+    e.preventDefault();
+  }
+};
 </script>
 <template>
     <div class="navigation" v-animate-css="{classes: 'fadeInDown', duration: 300}">
         <div class="navigation-contents site-width">
-            <router-link id="logo" class="scale-active" :to="{name: 'home'}">
-                <i class="ti ti-arrow-narrow-left" :class="{'i-hidden': $route.name === 'home'}" />
+            <router-link id="logo" class="scale-active" :to="homeRoute ?? {name: 'home'}">
+                <i @click="goPageBack" class="ti ti-arrow-narrow-left" :class="{'i-hidden': $route.name === 'home'}" />
                 <span>punyshort</span>
             </router-link>
             <div />
-            <div class="navigation-links">
+            <div class="navigation-links flex align-items-center">
                 <!-- <router-link :to="{}" @click.prevent="login" class="scale-active" href="/">
                     <span>admin</span>
                 </router-link> -->
+              <slot name="buttons" />
 
                 <template v-if="user">
                   <div class="relative">

@@ -1,11 +1,19 @@
 <script setup>
-import {ref} from "vue";
+import {ref, watch} from "vue";
+import {useRoute, useRouter} from "vue-router";
+
+const route = useRoute()
+const router = useRouter()
 
 const props = defineProps({
   tabs: Object
 })
 
-const selected = ref(Object.keys(props.tabs)[0])
+const selected = ref(route.hash?.replace('#', '') || Object.keys(props.tabs)[0])
+
+watch(selected, () => {
+  router.push({ hash: `#${selected.value}` })
+})
 </script>
 <template>
     <div class="tabs">

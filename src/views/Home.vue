@@ -7,6 +7,7 @@ import CreateDomainModal from "@/components/CreateDomainModal.vue";
 import {storeToRefs} from "pinia";
 import {useUserStore} from "@/store/userStore";
 import {ref, useTemplateRef} from "vue";
+import WorkspaceList from "@/components/WorkspaceList.vue";
 
 const { user } = storeToRefs(useUserStore())
 
@@ -32,13 +33,16 @@ const createdShortenLink = () => {
         </div>
 
         <div class="site-width mt-5" v-if="user">
-            <Tabs :tabs="{links: 'Shorten Links', domains: 'Domains'}">
+            <Tabs :tabs="{links: 'Shorten Links', domains: 'Domains', workspaces: 'Workspaces'}">
                 <template v-slot:[`tab-links`]>
                     <LinksList ref="linksList" class="mt-4" />
                 </template>
                 <template v-slot:[`tab-domains`]>
                     <DomainsList ref="domainsList" class="mt-4" />
                     <button class="btn" @click="addDomainModalOpened = true">Add Domain</button>
+                </template>
+                <template v-slot:[`tab-workspaces`]>
+                  <WorkspaceList />
                 </template>
             </Tabs>
         </div>
@@ -54,44 +58,6 @@ const createdShortenLink = () => {
     </div>
 </template>
 <style lang="scss" scoped>
-#home {
-    height: 100%;
-
-    #home-top {
-        background: #F9F9F9;
-        height: 100vh;
-        display: grid;
-        grid-template-rows: auto fit-content(0px) auto;
-        transition: 0.3s height;
-        #home-slug {
-            text-align: center;
-            margin-bottom: 60px;
-            font-weight: 400;
-            b {
-                font-weight: 600;
-            }
-        }
-        #home-top-contents {
-        }
-
-        &.logged-in {
-            height: initial;
-            grid-template-rows: 50px fit-content(60px) 50px;
-            #home-slug {
-                display: none;
-            }
-            #home-top-contents {
-                margin-top: 55px;
-            }
-        }
-
-
-        @media (prefers-color-scheme: dark) {
-            background: #111111;
-        }
-    }
-}
-
 .floating-info-text {
     position: sticky;
     display: block;

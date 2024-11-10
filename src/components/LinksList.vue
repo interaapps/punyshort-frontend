@@ -2,7 +2,7 @@
 import {apiClient} from "@/main";
 import {getFavicon} from "@/helper/helper";
 import {copyStringToClipboard} from "@/helper";
-import {onMounted, ref} from "vue";
+import {onMounted, ref, watch} from "vue";
 import QRCodeModal from "@/components/QRCodeModal.vue";
 
 const pagination = ref({})
@@ -12,6 +12,9 @@ const loading = ref(false)
 const search = ref("")
 
 const qrCodeModalOpened = ref({})
+
+
+const props = defineProps(["workspace"])
 
 const load = async (fresh = false, currentPage = 1) => {
   if (fresh)
@@ -23,13 +26,16 @@ const load = async (fresh = false, currentPage = 1) => {
     order_by: 'created_at',
     order_desc: 'true',
     search: search.value,
-    page: currentPage
+    page: currentPage,
+    'filter_workspaceId': props.workspace?.id ?? "null"
   })
   page.value = currentPage
 
   links.value = [...links.value, ...pagination.value.data]
   loading.value = false
 }
+
+watch(() => props.workspace, () => load(true))
 
 const observeEl = el => {
   const observer = new IntersectionObserver(entries => {
@@ -55,7 +61,7 @@ onMounted(() => {
 <template>
     <div class="links-list">
         <input v-model="search" type="text" class="search" placeholder="Search" @input="load(true)">
-        <router-link v-for="link of links" :key="link.id" class="links-list-item" :to="{name: 'link', params: {id: link.id}}">
+        <router-link v-for="link of links" :key="link.id" class="links-list-item" :to="workspace ? {name: 'workspace-link', params: {id: link.id, workspace: workspace.slug}} : {name: 'link', params: {id: link.id}}">
             <div class="links-list-name">
                 <div class="flex gap-3 align-items-center w-full">
                   <div style="width: 30px; height: 30px" class="border-round-2xl flex-none border-1 border-200 overflow-hidden p-1">

@@ -188,6 +188,17 @@ label {
     background: #32a88f;
   }
 
+  &.btn-outlined {
+    background: transparent;
+    color: #111;
+    border: 1px solid #CCC;
+
+    @media (prefers-color-scheme: dark) {
+      color: #FFF;
+      border: 1px solid #555;
+    }
+  }
+
   &.btn-transparent {
     background: transparent;
 
@@ -222,4 +233,4 @@ label {
   border-color: #666;
 }
 
-// @import './grid';
+@import './home';
