@@ -6,6 +6,7 @@ import {useUserStore} from "@/store/userStore";
 import {useTemplateRef} from "vue";
 import Tabs from "@/components/Tabs.vue";
 import LinkedDomains from "@/components/workspaces/LinkedDomains.vue";
+import WorkspaceUsers from "@/components/workspaces/WorkspaceUsers.vue";
 const { user } = storeToRefs(useUserStore())
 
 defineProps(["workspace", "workspaceUser"])
@@ -31,12 +32,20 @@ const shortenLinkRef = useTemplateRef('shortenLinkRef')
 
     <div class="site-width mt-5 relative">
 
-      <Tabs :tabs="{links: 'Shorten Links', ...(workspaceUser?.role === 'ADMIN' ? {domains: 'Linked Domains'} : {})}">
+      <Tabs :tabs="{
+        links: 'Shorten Links', ...(workspaceUser?.role === 'ADMIN' ? {
+          domains: 'Linked Domains',
+          users: 'Users'
+        } : {})
+      }">
         <template v-slot:[`tab-links`]>
           <LinksList :workspace="workspace" ref="linksList" class="mt-4" />
         </template>
         <template v-slot:[`tab-domains`]>
           <LinkedDomains @change="shortenLinkRef.loadDomains()" :workspace="workspace" />
+        </template>
+        <template v-slot:[`tab-users`]>
+          <WorkspaceUsers @change="shortenLinkRef.loadDomains()" :workspace="workspace" />
         </template>
       </Tabs>
     </div>

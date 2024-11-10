@@ -76,7 +76,11 @@ onMounted(() => {
 
                       <QRCodeModal v-model:visible="qrCodeModalOpened[link.id]" :text="link.full_link" />
                     </div>
-                    <h2>{{ link.long_link }}</h2>
+                    <div class="flex w-full gap-2 align-items-center">
+                      <h2>{{ link.long_link }}</h2>
+
+                      <img class="border-1 border-200 border-round-xl" style="height: 16px; width: 16px;" v-if="link.user" :src="link.user.avatar" :title="`${link.user.name} (${link.user.email})`" alt="">
+                    </div>
                   </div>
                 </div>
             </div>

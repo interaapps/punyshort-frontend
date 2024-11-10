@@ -76,6 +76,11 @@ input, select {
   display: inline-block;
   transition: 0.3s;
 
+  &.icon-button-small {
+    font-size: 18px;
+    padding: 3px;
+  }
+
   &:hover {
     background: #00000011;
     transform: scale(1.15);

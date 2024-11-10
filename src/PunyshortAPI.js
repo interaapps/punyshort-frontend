@@ -87,4 +87,24 @@ export default class PunyshortAPI extends Cajax {
     removeWorkspaceDomain(id, domainId) {
         return this.delete(`/v1/workspaces/${id}/domains/${domainId}`)
     }
+
+    getWorkspaceUsers(id, params = {}) {
+        return this.get(`/v1/workspaces/${id}/users`, params)
+    }
+
+    inviteUserToWorkspace(id, email) {
+        return this.post(`/v1/workspaces/${id}/users`, {email})
+    }
+
+    acceptWorkspaceInvitation(id, userId) {
+        return this.post(`/v1/workspaces/${id}/users/${userId}/accept`)
+    }
+
+    removeWorkspaceUser(id, userId) {
+        return this.delete(`/v1/workspaces/${id}/users/${userId}`)
+    }
+
+    updateWorkspaceUser(id, userId, body) {
+        return this.put(`/v1/workspaces/${id}/users/${userId}`, body)
+    }
 }
