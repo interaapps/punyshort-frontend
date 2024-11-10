@@ -89,7 +89,7 @@ onMounted(async () => {
     </template>
   </navigation>
   <div v-if="workspace">
-    <router-view :workspace="workspace" :workspace-user="workspaceUser" />
+    <router-view :key="`workspace-${workspace.id}`" :workspace="workspace" :workspace-user="workspaceUser" />
   </div>
   <p v-else class="mt-5">Workspace not found</p>
 </template>
