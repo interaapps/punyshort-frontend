@@ -29,7 +29,7 @@ const workspace = ref(null)
 const workspaceUser = ref(null)
 const workspaces = ref([])
 
-onMounted(async () => {
+const load = async () => {
   workspaces.value = (await apiClient.getWorkspaces({
     limit: 10000
   })).data
@@ -39,6 +39,12 @@ onMounted(async () => {
     workspace.value = workspaces.value.find(w => w.id === route.params.workspace)
 
   workspaceUser.value = workspace.value?.users?.find(u => u.id === user.value.id)
+}
+
+watch(() => route.params.workspace, () => load())
+
+onMounted(async () => {
+  load()
 })
 </script>
 <template>
